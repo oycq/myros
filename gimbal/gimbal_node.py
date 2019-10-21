@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 import rospy
 import std_msgs.msg
+from geometry_msgs.msg import Vector3
 from sensor_msgs.msg import Joy
 import serial 
 import time
 import os
 import struct
+from threading import Lock
 
 ser = serial.Serial('/dev/ttyUSB0',115200)  # open serial port
 time.sleep(1)
@@ -91,18 +93,46 @@ def get_status():
         if i in [9,10,11]:
             imu_acc.append(data / 512)
 #    print('%15.2f   %15.2f   %15.2f'%(imu_angle[0], imu_angle[1], imu_angle[2]),end = '\r')
-    print('%15.2f   %15.2f   %15.2f'%(joint_angle[0], joint_angle[1], joint_angle[2]))
+#    print('%15.2f   %15.2f   %15.2f'%(joint_angle[0], joint_angle[1], joint_angle[2]))
 #    print('%15.2f   %15.2f   %15.2f'%(imu_speed[0], imu_speed[1], imu_speed[2]),end = '\r')
 #    print('%15.2f   %15.2f   %15.2f'%(imu_acc[0], imu_acc[1], imu_acc[2]),end = '\r')
     return imu_angle,imu_speed,imu_acc,joint_angle
 
+
+speed_pitch = 0
+speed_roll = 0
+speed_yaw = 0
+uncontrol_i = 15
+lock = Lock()
+
 def callback(a):
-    speed_control(a.axes[1]*600,0,-a.axes[0]*600)
+    global lock,speed_pitch,speed_yaw,speed_roll,uncontrol_i
+    with lock:
+        speed_pitch = a.axes[1]
+        speed_yaw = a.axes[0]
+        speed_roll = a.axes[2]
+    uncontrol_i = 15
+
 
 if __name__ == '__main__':
     rospy.init_node('gimbal', anonymous=False)
-    rospy.Subscriber("speed", Joy, callback)
-    rospy.spin()
+    rospy.Subscriber("gimbal_control", Joy, callback)
+    gimbal_imu_angle = rospy.Publisher('gimbal_imu_angle', Vector3, queue_size=1)
+    gimbal_imu_speed = rospy.Publisher('gimbal_imu_speed', Vector3, queue_size=1)
+    gimbal_joint_angle = rospy.Publisher('gimbal_joint_angle', Vector3, queue_size=1)
+    while not rospy.is_shutdown():
+        imu_angle,imu_speed,imu_acc,joint_angle = get_status()
+        gimbal_imu_angle.publish(imu_angle[0], imu_angle[1], imu_angle[2])
+        gimbal_imu_speed.publish(imu_speed[0], imu_speed[1], imu_speed[2])
+        gimbal_joint_angle.publish(joint_angle[0], joint_angle[1], joint_angle[2])
+        if uncontrol_i >= 0:
+            with lock:
+                speed_control(speed_pitch * 600, speed_roll, speed_yaw * 600)
+            uncontrol_i -= 1
+        else:
+            speed_control(0, 0, 0)
+
+
 #    motor_on()
 ##    while(1):
 ##        get_status()
