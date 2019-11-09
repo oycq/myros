@@ -107,15 +107,15 @@ lock = Lock()
 
 def callback(a):
     global lock,speed_pitch,speed_yaw,speed_roll,uncontrol_i
-    with lock:
-        speed_pitch = a.axes[1]
-        speed_yaw = a.axes[0]
-        speed_roll = a.axes[2]
+#    with lock:
+    speed_pitch = a.axes[1]
+    speed_yaw = a.axes[0]
+    speed_roll = a.axes[2]
     uncontrol_i = 15
 
 
 if __name__ == '__main__':
-    rospy.init_node('gimbal', anonymous=False)
+    rospy.init_node('gimbal_node', anonymous=False)
     rospy.Subscriber("gimbal_control", Joy, callback)
     gimbal_imu_angle = rospy.Publisher('gimbal_imu_angle', Vector3, queue_size=1)
     gimbal_imu_speed = rospy.Publisher('gimbal_imu_speed', Vector3, queue_size=1)
@@ -126,8 +126,8 @@ if __name__ == '__main__':
         gimbal_imu_speed.publish(imu_speed[0], imu_speed[1], imu_speed[2])
         gimbal_joint_angle.publish(joint_angle[0], joint_angle[1], joint_angle[2])
         if uncontrol_i >= 0:
-            with lock:
-                speed_control(speed_pitch * 600, speed_roll, speed_yaw * 600)
+#            with lock:
+            speed_control(speed_pitch * 600, speed_roll, speed_yaw * 600)
             uncontrol_i -= 1
         else:
             speed_control(0, 0, 0)
