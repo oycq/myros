@@ -77,7 +77,9 @@ if __name__ == '__main__':
         image = cam.read()
         image_id = (image_id + 1) % 10
         image_path = storing_path + '%d.bmp'%(image_id)
-        cv2.imshow('a',cv2.resize(image,(190,120)))
+        image_to_show = cv2.resize(image,(380,240))
+        cv2.circle(image_to_show, (190,120), 5,(0), 2)
+        cv2.imshow('a',image_to_show)
         cv2.imwrite(image_path,image)
         key = cv2.waitKey(1)
         image_path_pub.publish(image_path)

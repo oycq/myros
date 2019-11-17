@@ -3,6 +3,7 @@ import rospy
 import std_msgs.msg
 from geometry_msgs.msg import Vector3
 from sensor_msgs.msg import Joy
+from std_msgs.msg import Int16MultiArray
 import serial 
 import time
 import os
@@ -102,21 +103,29 @@ def get_status():
 speed_pitch = 0
 speed_roll = 0
 speed_yaw = 0
-uncontrol_i = 15
 lock = Lock()
+use_traking_data = False
+pitch_control = 0
+yaw_control = 0
 
-def callback(a):
-    global lock,speed_pitch,speed_yaw,speed_roll,uncontrol_i
+def joy_callback(a):
+    global lock,speed_pitch,speed_yaw,speed_roll,uncontrol_i,use_traking_data
 #    with lock:
     speed_pitch = a.axes[1]
     speed_yaw = a.axes[0]
     speed_roll = a.axes[2]
-    uncontrol_i = 15
+    use_traking_data = a.buttons[3]
+
+def tracking_info_callback(a):
+    global yaw_control, pitch_control
+    yaw_control = (a.data[0] + a.data[2] - a.data[4]) / 2 / 10
+    pitch_control = (a.data[1] + a.data[3] - a.data[5]) / 2 / 10
 
 
 if __name__ == '__main__':
     rospy.init_node('gimbal_node', anonymous=False)
-    rospy.Subscriber("gimbal_control", Joy, callback)
+    rospy.Subscriber("joy", Joy, joy_callback)
+    rospy.Subscriber('tracking_info', Int16MultiArray, tracking_info_callback)
     gimbal_imu_angle = rospy.Publisher('gimbal_imu_angle', Vector3, queue_size=1)
     gimbal_imu_speed = rospy.Publisher('gimbal_imu_speed', Vector3, queue_size=1)
     gimbal_joint_angle = rospy.Publisher('gimbal_joint_angle', Vector3, queue_size=1)
@@ -125,12 +134,11 @@ if __name__ == '__main__':
         gimbal_imu_angle.publish(imu_angle[0], imu_angle[1], imu_angle[2])
         gimbal_imu_speed.publish(imu_speed[0], imu_speed[1], imu_speed[2])
         gimbal_joint_angle.publish(joint_angle[0], joint_angle[1], joint_angle[2])
-        if uncontrol_i >= 0:
-#            with lock:
-            speed_control(speed_pitch * 600, speed_roll, speed_yaw * 600)
-            uncontrol_i -= 1
+        if use_traking_data == True:
+            speed_control( pitch_control, 0, yaw_control)
         else:
-            speed_control(0, 0, 0)
+            speed_control(speed_pitch **3 * 300, 0, -speed_yaw **3 * 300)
+            #speed_control(0, 0, 0)
 
 
 #    motor_on()
