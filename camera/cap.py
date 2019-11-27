@@ -12,7 +12,6 @@ setting_list = [
     ['TriggerMode'           , 'Off'      , 'General'],
     ['StreamBufferHandlingMode'  , 'NewestOnly'      , 'Stream' ],
     ['AcquisitionMode'           , 'Continuous'      , 'General'],
-#    ['PixelFormat'           , 'BayerRG8'    , 'stream'],
                 ]
 
 class Camera():
@@ -36,7 +35,6 @@ class Camera():
                 continue
             node.SetIntValue(node_new_value.GetValue())
 
-        node_pixel_format = PySpin.CEnumerationPtr(nodemap.GetNode('PixelFormat'))
 
     def __init__(self):
         self.setting_list = setting_list
@@ -51,7 +49,6 @@ class Camera():
         self.cam = self.cam_list[0]
         self.cam.Init()
         self.config_camera()
-        
         self.cam.BeginAcquisition()
 
     def __del__(self):
@@ -66,7 +63,6 @@ class Camera():
         if image_pt.IsIncomplete():
             print('Image incomplete with image status %d ...' % image_pt.GetImageStatus())
             os._exit(0) 
-        #image_converted = image_pt.Convert(PySpin.PixelFormat_BGR8, PySpin.NEAREST_NEIGHBOR_AVG)
         image= image_pt.GetNDArray()
         image_pt.Release()
         return image
@@ -76,24 +72,19 @@ if __name__ == '__main__':
     image_path_pub = rospy.Publisher('image_path', std_msgs.msg.String, queue_size=1)
     cam = Camera()
     image_id = 0
- #   storing_path = os.getcwd() + '/ram/'
-    storing_path = '/dev/shm/'
+    storing_path = os.getcwd() + '/ram/'
     while(1):
-        t0 = time.time() * 1000
         image = cam.read()
-#       image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2BGR)
-        image_id = (image_id + 1) % 10
+        image_id = (image_id + 1) % 2
         image_path = storing_path + '%d.bmp'%(image_id)
-        cv2.imwrite(image_path,image)
-        image_path_pub.publish(image_path)
         image_to_show = cv2.resize(image,(380,240))
-        t1 = time.time() * 1000
         cv2.circle(image_to_show, (190,120), 5,(0), 2)
         cv2.imshow('a',image_to_show)
-        key = cv2.waitKey(1)
-        t2 = time.time() * 1000
 
-        print("%6.2f %6.2f"%(t1-t0,t2-t0))
+    #    cv2.imwrite(image_path,cv2.resize(image, (960, 600)))
+        cv2.imwrite(image_path,image)
+        key = cv2.waitKey(1)
+        image_path_pub.publish(image_path)
         if key == ord('q'):
             del cam
             break

@@ -104,6 +104,7 @@ speed_pitch = 0
 speed_roll = 0
 speed_yaw = 0
 lock = Lock()
+good_track = 0
 use_traking_data = False
 pitch_control = 0
 yaw_control = 0
@@ -117,9 +118,10 @@ def joy_callback(a):
     use_traking_data = a.buttons[3]
 
 def tracking_info_callback(a):
-    global yaw_control, pitch_control
-    yaw_control = (a.data[0] + a.data[2] - a.data[4]) / 2 / 10
-    pitch_control = (a.data[1] + a.data[3] - a.data[5]) / 2 / 10
+    global yaw_control, pitch_control, good_track
+    good_track = a.data[0]
+    yaw_control = (a.data[1] + a.data[3] - a.data[5]) / 2 / 10
+    pitch_control = (a.data[2] + a.data[4] - a.data[6]) / 2 / 10
 
 
 if __name__ == '__main__':
@@ -134,7 +136,7 @@ if __name__ == '__main__':
         gimbal_imu_angle.publish(imu_angle[0], imu_angle[1], imu_angle[2])
         gimbal_imu_speed.publish(imu_speed[0], imu_speed[1], imu_speed[2])
         gimbal_joint_angle.publish(joint_angle[0], joint_angle[1], joint_angle[2])
-        if use_traking_data == True:
+        if use_traking_data == True and good_track == True:
             speed_control( pitch_control, 0, yaw_control)
         else:
             speed_control(speed_pitch **3 * 300, 0, -speed_yaw **3 * 300)

@@ -44,7 +44,7 @@ def joy_callback(a):
     if a.buttons[10] == 1:
         mouse_y -= 3
     if box_w < 4:
-        box_w == 4
+        box_w = 4
     if a.buttons[0] == 0:
         last_lock_key = 0
     if  a.buttons[0] == 1:
@@ -61,8 +61,8 @@ def image_path_callback(a):
 
 def tracking_info_callback(a):
     global traking_pt1, traking_pt2
-    traking_pt1 = (a.data[0], a.data[1])
-    traking_pt2 = (a.data[2], a.data[3])
+    traking_pt1 = (a.data[1], a.data[2])
+    traking_pt2 = (a.data[3], a.data[4])
     
 
 if __name__ == '__main__':
@@ -71,13 +71,15 @@ if __name__ == '__main__':
     rospy.Subscriber("joy", Joy, joy_callback)
     rospy.Subscriber('tracking_info', Int16MultiArray, tracking_info_callback)
     lockon_commmand_pub = rospy.Publisher('lockon_command_node', String, queue_size = 1)
-    cv2.namedWindow('img')
+    cv2.namedWindow('img', cv2.WND_PROP_FULLSCREEN)
+    cv2.setWindowProperty("img",cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
     cv2.setMouseCallback('img',mouse_callback)
     while not rospy.is_shutdown():
         if image_path == '':
             time.sleep(0.1)
             continue
         t1 = time.time() * 1000
+        #raw = cv2.imread(image_path, 0)
         raw = cv2.imread(image_path)
         cv2.circle(raw, (960,600), 10,(255,0,0), 2)
         pt1,pt2 = caculate_box_points(mouse_x, mouse_y, box_w, raw.shape)
