@@ -1,0 +1,4 @@
+sudo pip install opencv-contrib-python                                      
+sudo pip install sharedarray
+sudo apt install ros-melodic-joy
+

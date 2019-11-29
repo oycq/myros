@@ -87,7 +87,7 @@ if __name__ == '__main__':
     image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2BGR)
     for i in range(20):
         x.append(sa.create("shm://%d.opy"%i,image.shape,dtype = 'uint8'))
-    while 1:
+    while not rospy.is_shutdown():
         image = cam.read()
         t0 = time.time() * 1000
         image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2BGR)
