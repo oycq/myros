@@ -5,8 +5,11 @@ import cv2
 import time
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String,Int16MultiArray
+import SharedArray as sa
+
 
 image_path = ''
+x = {}
 mouse_x = 400
 mouse_y = 400
 box_w = 50
@@ -56,8 +59,10 @@ def joy_callback(a):
 #    print(a.axes[3], a.buttons[0])
 
 def image_path_callback(a):
-    global image_path
+    global image_path, x
     image_path = a.data
+    if a.data not in x:
+        x[a.data] = sa.attach(a.data)   
 
 def tracking_info_callback(a):
     global traking_pt1, traking_pt2
@@ -80,8 +85,8 @@ if __name__ == '__main__':
             continue
         t1 = time.time() * 1000
         #raw = cv2.imread(image_path, 0)
-        raw = cv2.imread(image_path)
-        cv2.circle(raw, (960,600), 10,(255,0,0), 2)
+        raw = x[image_path].copy()
+        cv2.circle(raw, (1024,768), 10,(255,0,0), 2)
         pt1,pt2 = caculate_box_points(mouse_x, mouse_y, box_w, raw.shape)
         cv2.rectangle(raw,pt1,pt2,(0,255,0),2)
         cv2.rectangle(raw,traking_pt1,traking_pt2,(0,0,255),2)

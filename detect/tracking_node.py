@@ -6,8 +6,10 @@ import time
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String,Int16MultiArray
 import time
+import SharedArray as sa
 
 image_path = ''
+x = {}
 
 bbox = (0,0,0,0)
 
@@ -24,14 +26,15 @@ def create_tracker():
     #return cv2.TrackerMOSSE_create()
     #return cv2.TrackerMedianFlow_create()
 
-    return csrt
 
 tracker = create_tracker()
 state = False
 
 def image_path_callback(a):
-    global image_path
+    global image_path,x
     image_path = a.data
+    if a.data not in x:
+        x[a.data] = sa.attach(a.data)
 
 def lockon_command_callback(a):
     print(a)
@@ -55,7 +58,7 @@ if __name__ == '__main__':
         if image_path == '':
             time.sleep(0.1)
             continue
-        raw_img = cv2.imread(image_path, cv2.IMREAD_ANYCOLOR)
+        raw_img = x[image_path].copy()
         if state is True:
             state, bbox = tracker.update(raw_img)
             pt1 = (int(bbox[0]),int(bbox[1]))

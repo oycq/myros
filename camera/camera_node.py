@@ -7,6 +7,10 @@ import cv2
 import serial#sudo pip3 install pyserial
 import time
 import os
+import io 
+import os
+import SharedArray as sa
+import thread
 
 setting_list = [
     ['TriggerMode'           , 'Off'      , 'General'],
@@ -76,24 +80,32 @@ if __name__ == '__main__':
     image_path_pub = rospy.Publisher('image_path', std_msgs.msg.String, queue_size=1)
     cam = Camera()
     image_id = 0
- #   storing_path = os.getcwd() + '/ram/'
-    storing_path = '/dev/shm/'
-    while(1):
-        t0 = time.time() * 1000
+    os.system('rm /dev/shm/*.opy')
+    storing_path = 'shm://'
+    x = []
+    image = cam.read()
+    image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2BGR)
+    for i in range(20):
+        x.append(sa.create("shm://%d.opy"%i,image.shape,dtype = 'uint8'))
+    while 1:
         image = cam.read()
-#       image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2BGR)
-        image_id = (image_id + 1) % 10
-        image_path = storing_path + '%d.bmp'%(image_id)
-        cv2.imwrite(image_path,image)
+        t0 = time.time() * 1000
+        image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2BGR)
+        image_id = (image_id + 1) % 20 
+        image_path = storing_path + '%d.opy'%(image_id)
+        x[image_id][:] = image
         image_path_pub.publish(image_path)
-        image_to_show = cv2.resize(image,(380,240))
         t1 = time.time() * 1000
-        cv2.circle(image_to_show, (190,120), 5,(0), 2)
-        cv2.imshow('a',image_to_show)
-        key = cv2.waitKey(1)
-        t2 = time.time() * 1000
-
-        print("%6.2f %6.2f"%(t1-t0,t2-t0))
-        if key == ord('q'):
+#        image_to_show = cv2.resize(image,(240,160))
+#        cv2.circle(image_to_show, (120,60), 5,(0,0,255), 1)
+#        cv2.imshow('a',image_to_show)
+#        key = cv2.waitKey(1)
+#        t2 = time.time() * 1000
+#        print("%6.2f %6.2f"%(t1-t0,t2-t0))
+#       if key == ord('q'):
+#            break
+        print("cap%6.2f"%(t1-t0))
+        if rospy.is_shutdown():
             del cam
             break
+            
