@@ -35,8 +35,12 @@ def joy_callback(a):
                 print('start recording')
                 start_time = time.time() 
                 date_time = datetime.now().strftime("20%y-%m-%d-%H:%M:%S")
-                video_writer = cv2.VideoWriter('../store/%s.avi'%date_time,\
-                        cv2.VideoWriter_fourcc(*'LAGS'), 30, (image_shape[1],image_shape[0]))
+                video_writer = cv2.VideoWriter('../store/%s.avi'%date_time, \
+                        cv2.VideoWriter_fourcc(*'MJPG'), 30, (image_shape[1],image_shape[0]))
+            #    video_writer = cv2.VideoWriter('../store/%s.avi'%date_time, \
+            #            cv2.VideoWriter_fourcc(*'avc1'), 30, (image_shape[1],image_shape[0]))
+
+                print(video_writer)
                 record_state = 1
             else:
                 record_state = 0
@@ -61,7 +65,8 @@ if __name__ == '__main__':
         else:
             time0 = time.time()
             img = x[image_path].copy()
-            video_writer.write(img)
+            cv2.imwrite('../store/0.bmp',img)
+            #video_writer.write(img)
             time1 = time.time()
-         #   print(time1 * 1000 - time0 * 1000)
+            print(time1 * 1000 - time0 * 1000)
 

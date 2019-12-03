@@ -11,6 +11,8 @@ import io
 import os
 import SharedArray as sa
 import thread
+from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import Image
 
 setting_list = [
     ['TriggerMode'           , 'Off'      , 'General'],
@@ -78,6 +80,8 @@ class Camera():
 if __name__ == '__main__':
     rospy.init_node('camera_node', anonymous=False)
     image_path_pub = rospy.Publisher('image_path', std_msgs.msg.String, queue_size=1)
+    raw_image_pub = rospy.Publisher('image_raw', Image, queue_size=1)
+    bridge = CvBridge()
     cam = Camera()
     image_id = 0
     os.system('rm /dev/shm/*.opy')
@@ -88,14 +92,19 @@ if __name__ == '__main__':
     for i in range(20):
         x.append(sa.create("shm://%d.opy"%i,image.shape,dtype = 'uint8'))
     while not rospy.is_shutdown():
-        image = cam.read()
         t0 = time.time() * 1000
-        image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2BGR)
+        raw = cam.read()
+        t1 = time.time() * 1000
+        image = cv2.cvtColor(raw, cv2.COLOR_BAYER_BG2BGR)
         image_id = (image_id + 1) % 20 
         image_path = storing_path + '%d.opy'%(image_id)
         x[image_id][:] = image
         image_path_pub.publish(image_path)
-        t1 = time.time() * 1000
+        t2 = time.time() * 1000
+        raw_ros_image = bridge.cv2_to_imgmsg(raw, "bayer_rggb8")
+        raw_image_pub.publish(raw_ros_image)
+        t3 = time.time() * 1000
+
 #        image_to_show = cv2.resize(image,(240,160))
 #        cv2.circle(image_to_show, (120,60), 5,(0,0,255), 1)
 #        cv2.imshow('a',image_to_show)
@@ -104,7 +113,7 @@ if __name__ == '__main__':
 #        print("%6.2f %6.2f"%(t1-t0,t2-t0))
 #       if key == ord('q'):
 #            break
-        print("cap%6.2f"%(t1-t0))
+        print("cap %5.2f   memory %5.2f   ros_pub %5.2f   sum %5.2f"%(t1-t0,t2-t1,t3-t2,t3-t0))
         if rospy.is_shutdown():
             del cam
             break

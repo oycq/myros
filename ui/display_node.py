@@ -9,6 +9,9 @@ import SharedArray as sa
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage
 from sensor_msgs.msg import Image
+import os
+import subprocess
+
 
 bridge = CvBridge()
 image_path = ''
@@ -19,6 +22,8 @@ box_w = 50
 traking_pt1 = (0,0)
 traking_pt2 = (0,0)
 new_image = 0
+record_state = 0
+rosbag_proc = None
 
 #def mouse_callback(event,x,y,flags,param):
 #    global mouse_x, mouse_y, pt1, pt2
@@ -35,9 +40,11 @@ def caculate_box_points(x,y,width,img_shape):
     return pt1,pt2
 
 
+
 last_lock_key = 0
+last_buttons = None
 def joy_callback(a):
-    global box_w,mouse_x,mouse_y,last_lock_key
+    global box_w,mouse_x,mouse_y,last_lock_key,record_state, last_buttons,rosbag_proc
     if a.buttons[6] == 1:
         box_w -= 1
     if a.buttons[8] == 1:
@@ -58,14 +65,21 @@ def joy_callback(a):
         if last_lock_key == 0:
             lockon_commmand_pub.publish('lockon %d %d %d %d'%(pt1[0], pt1[1],pt2[0],pt2[1]))
         last_lock_key = 1
-
+    if a.buttons[1] == 1:
+        if last_buttons[1] == 0:
+            if record_state == 0:
+                rosbag_proc = subprocess.Popen('rosbag record -o ../store/ -a __name:=my_bag',shell=True)
+            else:
+                os.system('rosnode kill /my_bag')
+            record_state = (record_state + 1) % 2
+    last_buttons = a.buttons
 
 #    print(a.axes[3], a.buttons[0])
 
 def image_path_callback(a):
     global image_path, x, new_image
     image_path = a.data
-    new_image = 1
+    new_image += 1
     if a.data not in x:
         x[a.data] = sa.attach(a.data)   
 
@@ -74,10 +88,26 @@ def tracking_info_callback(a):
     traking_pt1 = (a.data[1], a.data[2])
     traking_pt2 = (a.data[3], a.data[4])
     
+how_many_dot = 0
+def draw_text(image):
+    global how_many_dot
+    font = cv2.FONT_HERSHEY_SIMPLEX 
+    org = (20, 30) 
+    fontScale = 0.7
+    color = (0, 0, 255) 
+    thickness = 2
+    if record_state:
+        how_many_dot = (how_many_dot + 1) % 99 
+        string_list = ['Record','Record .','Record . .']
+        image = cv2.putText(image, string_list[how_many_dot//33], org, font,  
+                   fontScale, color, thickness, cv2.LINE_AA) 
+    return image 
+
+    
 
 if __name__ == '__main__':
-#    dispaly_image_pub = rospy.Publisher('display_image/compressed', Image, queue_size=1)
-    dispaly_image_pub = rospy.Publisher('display_image', Image, queue_size=1)
+    dispaly_image_pub = rospy.Publisher('display_image/compressed', CompressedImage, queue_size=1)
+    #dispaly_image_pub = rospy.Publisher('display_image', Image, queue_size=1)
     rospy.init_node('display_node', anonymous=False)
     rospy.Subscriber("image_path/", std_msgs.msg.String, image_path_callback)
     rospy.Subscriber("joy", Joy, joy_callback)
@@ -92,21 +122,22 @@ if __name__ == '__main__':
             continue
         t0 = time.time() * 1000
         while not rospy.is_shutdown():
-            if new_image == 1:
+            if new_image >= 2:
                 new_image = 0
                 break
             else:
-                time.sleep(0.0005)
+                time.sleep(0.0002)
         t1 = time.time() * 1000
         raw = x[image_path].copy()
-        cv2.circle(raw, (1024,768), 10,(255,0,0), 2)
         pt1,pt2 = caculate_box_points(mouse_x, mouse_y, box_w, raw.shape)
         cv2.rectangle(raw,pt1,pt2,(0,255,0),2)
         cv2.rectangle(raw,traking_pt1,traking_pt2,(0,0,255),2)
- #       cv2.imshow('img',raw)
+
+        image = cv2.resize(raw,(1024,768))
+        cv2.circle(image, (512,384), 3,(0,0,255), 1)
+        image = draw_text(image)
         t2 = time.time() * 1000
-        ros_image = bridge.cv2_to_imgmsg(cv2.resize(raw,(640,480)), "bgr8")
-        #ros_image = bridge.cv2_to_compressed_imgmsg(cv2.resize(raw,(640,480)), "jpg")
+        ros_image = bridge.cv2_to_compressed_imgmsg(image, "jpeg")
         dispaly_image_pub.publish(ros_image)
         t3 = time.time() * 1000
 #        key = cv2.waitKey(1)
