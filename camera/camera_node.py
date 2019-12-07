@@ -6,7 +6,6 @@ import numpy as np
 import cv2
 import serial#sudo pip3 install pyserial
 import time
-import os
 import io 
 import os
 import SharedArray as sa
