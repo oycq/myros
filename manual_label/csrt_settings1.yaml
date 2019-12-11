@@ -17,7 +17,7 @@ filter_lr: 1.9999999552965164e-02
 admm_iterations: 4
 number_of_scales: 33
 scale_sigma_factor: 2.5000000000000000e-01
-scale_model_max_area: 512.
+scale_model_max_area: 1024.
 scale_lr: 2.5000000372529030e-02
 scale_step: 1.0199999809265137e+00
 use_channel_weights: 1
@@ -26,4 +26,4 @@ use_segmentation: 1
 histogram_bins: 16
 background_ratio: 2
 histogram_lr: 3.9999999105930328e-02
-psr_threshold: 3.5000000149011612e-02
+psr_threshold: 1.5000000596046448e-02
