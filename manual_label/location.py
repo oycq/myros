@@ -178,10 +178,12 @@ while(True):
     if key == ord('q'):
         break
     if key == ord('1'):
+        print(i)
         add_i = 0
         if_update_csrt = 1
         i -= 1
     if key == ord('3'):
+        print(i)
         add_i = 1
         i += 1
         if_update_csrt = 1
