@@ -1,1 +1,4 @@
 store
+*.pyc
+train/__pycache__
+train/wandb

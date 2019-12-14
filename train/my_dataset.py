@@ -39,15 +39,15 @@ def get_image(I):
         j = random.randint(0,image_shape[1] - s - 1)
         if i <= y and j <= x and i + s> a and j + s> b:
             image = cv2.imread(image_path,0)
-            image = image[i:i+s,j:j+s,].copy()
             image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2GRAY) 
-            return image, (1, x-j, y-i, w, h)
+            image = image[i:i+s,j:j+s,].copy()
+            return image, (x-j, y-i, w, h), 1
         else:
             if i + s< y or i > a or j + s< x or j > b:
                 image = cv2.imread(image_path,0)
-                image = image[i:i+s,j:j+s,].copy()
                 image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2GRAY) 
-                return image, (0, 0, 0, 0, 0)
+                image = image[i:i+s,j:j+s,].copy()
+                return image, (0,0,0,0), 0
             else:
                 loop += 1
                 if loop > 30:
@@ -70,13 +70,13 @@ class MyDataset(Dataset):
 
     def __getitem__(self,index):
         if self.train_test == 'test':
-            index += len(points_list * 2 // 3)
-        if self.train_test == 'train':
-            image, (x,y,w,h), state = get_image(index)
-            inputs = torch.tensor(image)
-            ground_truth_state = torch.tensor([state],dtype = torch.long)
-            ground_truth_box = torch.tensor([float(x + w / 2)/s, float(y + w / 2)/s ,float(w)/s, float(h)/s])
-            return inputs, ground_truth
+            index += len(points_list) * 2 // 3
+        image, (x,y,w,h),state =  get_image(index)
+        inputs = torch.tensor(image,dtype = torch.float) / 255
+        inputs = inputs.unsqueeze(0)
+        ground_truth = torch.tensor([state, float(x + w / 2)/s, float(y + h / 2)/s ,float(w)/s, float(h)/s])
+
+        return inputs, ground_truth
 
 #if __name__ == '__main__':
 #    aa = 0
