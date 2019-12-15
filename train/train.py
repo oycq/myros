@@ -14,8 +14,8 @@ import time
 
 K1 = 1 
 K2 = 10 
-K3 = 100 
-BATCH_SIZE = 30
+K3 = 10
+BATCH_SIZE = 100
 CUDA = 1
 WANDB = 1
 LOAD = 0
@@ -129,18 +129,20 @@ for epoch in range(20000000):
 #                x,y,w,h = ground_truth[0,1].item(),ground_truth[0,2].item(),ground_truth[0,3].item(),ground_truth[0,4].item()
 #                x,y,w,h = int(x*k - w*k/2),int(y*k - h*k/2),int(w*k),int(h*k)
 #                cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
+            else:
+                continue
             cv2.imshow('a',image)
-            plain = np.ones((240,240))
+            plain = np.ones((120,120))
             for ii in range(8):
                 for jj in range(8):
-                    plain[ii * 30: ii*30 + 28, jj * 30:jj * 30+ 28] = \
+                    plain[ii * 15: ii*15+ 14, jj * 15:jj * 15+ 14] = \
                     my_model.haha.detach().cpu().numpy()[0,ii * 8 + jj]
             cv2.imshow('b', plain)
         key = cv2.waitKey(1)
         if key == ord(' '):
             while(1):
                 key = cv2.waitKey(20)
-                if key == ord(' '):
+                if key == ord('0'):
                     break
                 
 

@@ -2,7 +2,7 @@ import torch
 import os
 import torch.nn as nn
 import cv2
-cfg = [4,'M',8, 8, 'M', 16, 16,'M',32,32,'M',64,64, 'M', 64]
+cfg = [8,'M',8, 8, 'M', 16, 16,'M',32,32,'M',64,64, 'M', 128]
 #  896    448       224         112       56  
 cfg2 = [1]
 haha = None 
@@ -13,7 +13,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.features = self._make_layers(cfg, batch_norm=True, in_channels = 1)
         self.classifier = nn.Sequential(
-            nn.Linear(64*28*28, 512),
+            nn.Linear(128*14*14, 512),
             nn.ReLU(True),
             nn.Dropout(),
             nn.Linear(512, 512),

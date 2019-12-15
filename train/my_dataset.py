@@ -13,7 +13,7 @@ image_list = glob.glob("../store/*/*.bmp")
 image_list.sort()
 image_shape = cv2.imread(image_list[0], 0).shape
 points_list = []
-s = 896
+s = 448
 
 for i in range(len(image_list)):
     continue_flag = 0
