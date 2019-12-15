@@ -2,10 +2,9 @@ import torch
 import os
 import torch.nn as nn
 import cv2
-cfg = [4,'M',8, 8, 'M', 16, 16,'M',32,16,'M','v']
+cfg = [4,'M',8, 8, 'M', 16, 16,'M',32,32,'M',64,64, 'M', 64]
 #  896    448       224         112       56  
 cfg2 = [1]
-
 haha = None 
 
 class Model(nn.Module):
@@ -13,43 +12,24 @@ class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
         self.features = self._make_layers(cfg, batch_norm=True, in_channels = 1)
-        self.box_classifier = nn.Sequential(
-            nn.Linear(896* 896, 64),
-            nn.ReLU(True),
-            nn.Dropout(),
-            nn.Linear(64, 64),
-            nn.ReLU(True),
-            nn.Dropout(),
-            nn.Linear(64, 64),
-            nn.ReLU(True),
-            nn.Dropout(),
-            nn.Linear(64, 4),
-        )
-        self.state_classifier = nn.Sequential(
-            nn.Linear(56* 56, 512),
+        self.classifier = nn.Sequential(
+            nn.Linear(64*28*28, 512),
             nn.ReLU(True),
             nn.Dropout(),
             nn.Linear(512, 512),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(512, 1),
+            nn.Linear(512, 5),
             nn.Sigmoid()
         )
-
-        self.upsample = nn.Upsample(scale_factor = 16, mode = 'nearest')
         self._initialize_weights()
 
     def forward(self, inputs):
         global haha
         x = self.features(inputs)
-        y = torch.flatten(x, 1)
-        x1 = self.state_classifier(y)
-        x = self.upsample(x)
-        x = x * inputs
-        haha = x
-        x = torch.flatten(x, 1)
-        x2 = self.box_classifier(x)
-        x = torch.cat((x1,x2), 1)
+        haha = x.clone()
+        x = torch.flatten(x,1)
+        x = self.classifier(x)
         return x
 
 

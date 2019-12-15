@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 import os
 import my_model as my_model
 import progressbar
@@ -19,6 +20,15 @@ CUDA = 1
 WANDB = 1
 LOAD = 0
 stage= 0
+layer = 0
+
+cv2.namedWindow("a", cv2.WINDOW_NORMAL);
+cv2.moveWindow("a", 0,0);
+cv2.setWindowProperty("a", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
+cv2.namedWindow("b", cv2.WINDOW_NORMAL);
+cv2.moveWindow("b", 1920,0);
+cv2.setWindowProperty("b", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
+
 
 if WANDB:
     wandb.init()
@@ -79,7 +89,7 @@ for epoch in range(20000000):
         loss3 = loss_f2(outputs[index,3:], ground_truth[index,3:]) * K3
         if loss1 < 0.1 and stage <= 200:
             stage += 1
-        if loss2 < 0.1 and stage > 400:
+        if loss2 < 0.1 and stage > 200:
             stage+= 1
         if stage< 200:
             loss = loss1
@@ -120,8 +130,20 @@ for epoch in range(20000000):
 #                x,y,w,h = int(x*k - w*k/2),int(y*k - h*k/2),int(w*k),int(h*k)
 #                cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
             cv2.imshow('a',image)
-            cv2.imshow('b', my_model.haha.detach().cpu().numpy()[0,0])
-            cv2.waitKey(10)
+            plain = np.ones((240,240))
+            for ii in range(8):
+                for jj in range(8):
+                    plain[ii * 30: ii*30 + 28, jj * 30:jj * 30+ 28] = \
+                    my_model.haha.detach().cpu().numpy()[0,ii * 8 + jj]
+            cv2.imshow('b', plain)
+        key = cv2.waitKey(1)
+        if key == ord(' '):
+            while(1):
+                key = cv2.waitKey(20)
+                if key == ord(' '):
+                    break
+                
+
 
             
     print(time.time() - time0)
