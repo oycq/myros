@@ -20,7 +20,7 @@ class Model(nn.Module):
             nn.ReLU(True),
             nn.Dropout(),
             nn.Linear(512, 5),
-            nn.Sigmoid()
+#            nn.Sigmoid()
         )
         self._initialize_weights()
 

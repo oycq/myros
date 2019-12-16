@@ -34,6 +34,7 @@ def get_image(I):
     loop = 0
     a = y + h
     b = x + w  
+    balance_none = 8
     while(1):
         i = random.randint(0,image_shape[0] - s - 1)
         j = random.randint(0,image_shape[1] - s - 1)
@@ -44,6 +45,16 @@ def get_image(I):
             return image, (x-j, y-i, w, h), 1
         else:
             if i + s< y or i > a or j + s< x or j > b:
+                if balance_none >0:
+                    balance_none -= 1
+                    I = (I + 1) %  len(points_list)
+                    x,y,w,h,image_path = points_list[I]
+                    loop = 0
+                    a = y + h
+                    b = x + w  
+                    continue
+
+
                 image = cv2.imread(image_path,0)
                 image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2GRAY) 
                 image = image[i:i+s,j:j+s,].copy()

@@ -17,7 +17,7 @@ K2 = 10
 K3 = 10
 BATCH_SIZE = 100
 CUDA = 1
-WANDB = 1
+WANDB = 0
 LOAD = 0
 stage= 0
 layer = 0
@@ -72,6 +72,7 @@ test_loader = torch.utils.data.DataLoader(test_set, BATCH_SIZE,\
         shuffle = True, num_workers = 5, drop_last =  True)
 loss_f1 = nn.BCELoss()
 loss_f2 = nn.MSELoss()
+m = nn.Sigmoid()
 
 for epoch in range(20000000):
     print('----- epoch %d -----'%epoch) 
@@ -83,7 +84,7 @@ for epoch in range(20000000):
             inputs = inputs.cuda()
             ground_truth = ground_truth.cuda()
         outputs = model(inputs)
-        loss1 = loss_f1(outputs[:,0], ground_truth[:,0]) * K1
+        loss1 = loss_f1(m(outputs[:,0]), ground_truth[:,0]) * K1
         index = ground_truth[:,0] == 1
         loss2 = loss_f2(outputs[index,1:3], ground_truth[index,1:3]) * K2
         loss3 = loss_f2(outputs[index,3:], ground_truth[index,3:]) * K3
