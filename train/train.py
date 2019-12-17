@@ -13,21 +13,18 @@ import random
 import time
 
 K1 = 1 
-K2 = 10 
-K3 = 10
-BATCH_SIZE = 100
+K2 = 100
+K3 = 100
+BATCH_SIZE = 10
 CUDA = 1
-WANDB = 0
+WANDB = 1 
 LOAD = 0
-stage= 0
-layer = 0
-
 cv2.namedWindow("a", cv2.WINDOW_NORMAL);
 cv2.moveWindow("a", 0,0);
 cv2.setWindowProperty("a", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
-cv2.namedWindow("b", cv2.WINDOW_NORMAL);
-cv2.moveWindow("b", 1920,0);
-cv2.setWindowProperty("b", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
+#cv2.namedWindow("b", cv2.WINDOW_NORMAL);
+#cv2.moveWindow("b", 1920,0);
+#cv2.setWindowProperty("b", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
 
 
 if WANDB:
@@ -73,6 +70,7 @@ test_loader = torch.utils.data.DataLoader(test_set, BATCH_SIZE,\
 loss_f1 = nn.BCELoss()
 loss_f2 = nn.MSELoss()
 m = nn.Sigmoid()
+mm = nn.ReLU()
 
 for epoch in range(20000000):
     print('----- epoch %d -----'%epoch) 
@@ -84,21 +82,15 @@ for epoch in range(20000000):
             inputs = inputs.cuda()
             ground_truth = ground_truth.cuda()
         outputs = model(inputs)
-        loss1 = loss_f1(m(outputs[:,0]), ground_truth[:,0]) * K1
+        outputs = outputs.contiguous().view(-1,5)
+        ground_truth = ground_truth.contiguous().view(-1 ,5)
+
+        index = ground_truth[:,0] != -1
+        loss1 = loss_f1(m(outputs[index,0]), ground_truth[index,0]) * K1
         index = ground_truth[:,0] == 1
         loss2 = loss_f2(outputs[index,1:3], ground_truth[index,1:3]) * K2
-        loss3 = loss_f2(outputs[index,3:], ground_truth[index,3:]) * K3
-        if loss1 < 0.1 and stage <= 200:
-            stage += 1
-        if loss2 < 0.1 and stage > 200:
-            stage+= 1
-        if stage< 200:
-            loss = loss1
-        else:
-            if stage< 400:
-                loss = loss1 + loss2 
-            else:
-                loss = loss1 + loss2 + loss3
+        loss3 = loss_f2(mm(outputs[index,3:])**0.5, (ground_truth[index,3:])**0.5) * K3
+        loss = loss1 + loss2 + loss3
         optimizer.zero_grad() 
         loss.backward()
         optimizer.step()
@@ -109,49 +101,38 @@ for epoch in range(20000000):
                        'loss2':loss2.item(),
                        'loss3':loss3.item(),
                        'loss':loss.item(),
-                       'stage':stage
                        })
-        if i % 4 == 0:
-            image = inputs[0,0].cpu().numpy()
-#            image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-#            fol = len(my_dataset.points_list)
-#            I = random.randint(fol//3*2, fol-1)
-#            image , gt, _ = my_dataset.get_image(I)
-#            image1 = image.copy()
-#            inputs = torch.tensor(image,dtype = torch.float) / 255
-#            inputs = inputs.unsqueeze(0)
-#            inputs = inputs.unsqueeze(0).cuda()
-#            outputs = model(inputs)
-            if outputs[0,0] > 0.5:
-                x,y,w,h = outputs[0,1].item(),outputs[0,2].item(),outputs[0,3].item(),outputs[0,4].item()
+
+        if i % 2 == 0:
+            ii = random.randrange(0,20)
+            jj = random.randrange(0,36)
+            p =  ii * 37 + jj
+            image = inputs[0,0].cpu().numpy()[ii * 32: ii * 32 + 896, jj * 32:jj *32 + 896]
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+            if outputs[p,0] > 0.5:
+                x,y,w,h = outputs[p,1].item(),outputs[p,2].item(),outputs[p,3].item(),outputs[p,4].item()
                 k = my_dataset.s
-                x,y,w,h = int(x*k - w*k/2),int(y*k - h*k/2),int(w*k),int(h*k)
+                x,y,w,h = int(x*k - w*k/2 + k /2),int(y*k - h*k/2 + k/2),int(w*k),int(h*k)
                 cv2.rectangle(image,(x,y),(x+w,y+h),(0,0,255),2)
-#                x,y,w,h = ground_truth[0,1].item(),ground_truth[0,2].item(),ground_truth[0,3].item(),ground_truth[0,4].item()
-#                x,y,w,h = int(x*k - w*k/2),int(y*k - h*k/2),int(w*k),int(h*k)
-#                cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
-            else:
-                continue
+            k = my_dataset.s
+            x,y,w,h = ground_truth[p,1].item(),ground_truth[p,2].item(),ground_truth[p,3].item(),ground_truth[p,4].item()
+            x,y,w,h = int(x*k - w*k/2 + k/2),int(y*k - h*k/2 + k/2),int(w*k),int(h*k)
+            cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
             cv2.imshow('a',image)
-            plain = np.ones((120,120))
-            for ii in range(8):
-                for jj in range(8):
-                    plain[ii * 15: ii*15+ 14, jj * 15:jj * 15+ 14] = \
-                    my_model.haha.detach().cpu().numpy()[0,ii * 8 + jj]
-            cv2.imshow('b', plain)
+#            plain = np.ones((120,120))
+#            for ii in range(8):
+#                for jj in range(8):
+#                    plain[ii * 15: ii*15+ 14, jj * 15:jj * 15+ 14] = \
+#                    my_model.haha.detach().cpu().numpy()[0,ii * 8 + jj]
+#            cv2.imshow('b', plain)
         key = cv2.waitKey(1)
-        if key == ord(' '):
-            while(1):
-                key = cv2.waitKey(20)
-                if key == ord('0'):
-                    break
                 
 
 
             
     print(time.time() - time0)
 
-    if epoch % 20 == 0 and WANDB:
+    if epoch % 10 == 0 and WANDB:
         torch.save(optimizer.state_dict(),'%s/%d:%d.adam'%(history_directory,epoch,0))
         torch.save(model.state_dict(),'%s/%d:%d.model'%(history_directory,epoch,0))
 
