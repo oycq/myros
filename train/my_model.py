@@ -2,7 +2,8 @@ import torch
 import os
 import torch.nn as nn
 import cv2
-cfg = [8,'M',8, 8, 'M', 16, 16,'M',32,32,'M',64,64, 'M', 128,128,'v']
+#cfg = [8,'M',8, 8, 'M', 16, 16,'M',32,32,'M',64,64, 'M', 128,128,'v']
+cfg = [4,'M',4, 4, 'M', 8, 8,'M',16,16,'M',32,32, 'M', 64,64,'v']
 #  896    448       224         112       56  
 cfg2 = [1]
 
@@ -26,10 +27,10 @@ class Model(nn.Module):
 
     def _make_layers(self,cfg,batch_norm,in_channels = 1):
         layers = []
-        deep = 64
+        deep = 32
         for v in cfg:
             if v == 'v':
-                conv2d = nn.Conv2d(128, deep, kernel_size=28, padding=0, bias=False)
+                conv2d = nn.Conv2d(64, deep, kernel_size=28, padding=0, bias=False)
                 layers += [conv2d, nn.BatchNorm2d(deep), nn.ReLU(inplace=True)]
                 conv2d = nn.Conv2d(deep, deep, kernel_size=1, padding=0, bias=False)
                 layers += [conv2d, nn.BatchNorm2d(deep), nn.ReLU(inplace=True)]
