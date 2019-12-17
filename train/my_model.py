@@ -2,7 +2,8 @@ import torch
 import os
 import torch.nn as nn
 import cv2
-cfg = [8,'M',8, 8, 'M', 16, 16,'M',32,32,'M',64,64, 'M', 128,128,'v']
+#cfg = [8,'M',8, 8, 'M', 16, 16,'M',32,32,'M',64,64, 'M', 128,128,'v']
+cfg = [4,'M',4, 4, 'M', 8, 8,'M',16,16,'M',32,32, 'M', 64,64,'v']
 #  896    448       224         112       56  
 cfg2 = [1]
 
@@ -16,23 +17,27 @@ class Model(nn.Module):
     def forward(self, inputs):
         x = self.features(inputs)
         x = x.permute(0,2,3,1)
+        y = x.flatten(1)
+        print(y.shape)
+
 
         return x
 
 
     def _make_layers(self,cfg,batch_norm,in_channels = 1):
         layers = []
+        fcn_deep = 128 
         for v in cfg:
             if v == 'v':
-                conv2d = nn.Conv2d(128, 128, kernel_size=28, padding=0, bias=False)
-                layers += [conv2d, nn.BatchNorm2d(128), nn.ReLU(inplace=True)]
-                conv2d = nn.Conv2d(128, 128, kernel_size=1, padding=0, bias=False)
-                layers += [conv2d, nn.BatchNorm2d(128), nn.ReLU(inplace=True)]
-                conv2d = nn.Conv2d(128, 128, kernel_size=1, padding=0, bias=False)
-                layers += [conv2d, nn.BatchNorm2d(128), nn.ReLU(inplace=True)]
-                conv2d = nn.Conv2d(128, 128, kernel_size=1, padding=0, bias=False)
-                layers += [conv2d, nn.BatchNorm2d(128), nn.ReLU(inplace=True)]
-                conv2d = nn.Conv2d(128, 5, kernel_size=1, padding=0, bias=False)
+                conv2d = nn.Conv2d(64, fcn_deep // 4, kernel_size=28, padding=0, bias=False)
+                layers += [conv2d, nn.BatchNorm2d(fcn_deep // 4), nn.ReLU(inplace=True)]
+                conv2d = nn.Conv2d(fcn_deep // 4, fcn_deep, kernel_size=1, padding=0, bias=False)
+                layers += [conv2d, nn.BatchNorm2d(fcn_deep), nn.ReLU(inplace=True)]
+                conv2d = nn.Conv2d(fcn_deep, fcn_deep, kernel_size=1, padding=0, bias=False)
+                layers += [conv2d, nn.BatchNorm2d(fcn_deep), nn.ReLU(inplace=True)]
+                conv2d = nn.Conv2d(fcn_deep, fcn_deep, kernel_size=1, padding=0, bias=False)
+                layers += [conv2d, nn.BatchNorm2d(fcn_deep), nn.ReLU(inplace=True)]
+                conv2d = nn.Conv2d(fcn_deep, 5, kernel_size=1, padding=0, bias=False)
                 layers += [conv2d]
                 continue
             if v == 'M':
