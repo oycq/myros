@@ -6,6 +6,9 @@ cfg = [8,'M',8, 8, 'M', 16, 16,'M',32,32,'M',64,64, 'M', 128,128,'v']
 #  896    448       224         112       56  
 cfg2 = [1]
 
+start = torch.cuda.Event(enable_timing=True)
+end = torch.cuda.Event(enable_timing=True)
+
 class Model(nn.Module):
 
     def __init__(self):
@@ -17,22 +20,24 @@ class Model(nn.Module):
         x = self.features(inputs)
         x = x.permute(0,2,3,1)
 
+
         return x
 
 
     def _make_layers(self,cfg,batch_norm,in_channels = 1):
         layers = []
+        deep = 64
         for v in cfg:
             if v == 'v':
-                conv2d = nn.Conv2d(128, 128, kernel_size=28, padding=0, bias=False)
-                layers += [conv2d, nn.BatchNorm2d(128), nn.ReLU(inplace=True)]
-                conv2d = nn.Conv2d(128, 128, kernel_size=1, padding=0, bias=False)
-                layers += [conv2d, nn.BatchNorm2d(128), nn.ReLU(inplace=True)]
-                conv2d = nn.Conv2d(128, 128, kernel_size=1, padding=0, bias=False)
-                layers += [conv2d, nn.BatchNorm2d(128), nn.ReLU(inplace=True)]
-                conv2d = nn.Conv2d(128, 128, kernel_size=1, padding=0, bias=False)
-                layers += [conv2d, nn.BatchNorm2d(128), nn.ReLU(inplace=True)]
-                conv2d = nn.Conv2d(128, 5, kernel_size=1, padding=0, bias=False)
+                conv2d = nn.Conv2d(128, deep, kernel_size=28, padding=0, bias=False)
+                layers += [conv2d, nn.BatchNorm2d(deep), nn.ReLU(inplace=True)]
+                conv2d = nn.Conv2d(deep, deep, kernel_size=1, padding=0, bias=False)
+                layers += [conv2d, nn.BatchNorm2d(deep), nn.ReLU(inplace=True)]
+                conv2d = nn.Conv2d(deep, deep, kernel_size=1, padding=0, bias=False)
+                layers += [conv2d, nn.BatchNorm2d(deep), nn.ReLU(inplace=True)]
+                conv2d = nn.Conv2d(deep, deep, kernel_size=1, padding=0, bias=False)
+                layers += [conv2d, nn.BatchNorm2d(deep), nn.ReLU(inplace=True)]
+                conv2d = nn.Conv2d(deep, 5, kernel_size=1, padding=0, bias=False)
                 layers += [conv2d]
                 continue
             if v == 'M':

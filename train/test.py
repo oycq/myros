@@ -17,8 +17,8 @@ import rospy
 
 BATCH_SIZE = 10
 CUDA = 1
-FP16 = 1
-LOAD = 1
+FP16 = 0
+LOAD = 0
 cv2.namedWindow("a", cv2.WINDOW_NORMAL);
 cv2.moveWindow("a", 0,0);
 cv2.setWindowProperty("a", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
@@ -53,14 +53,18 @@ def analysis(image):
                 inputs = inputs.half() 
         inputs = inputs / 255
         inputs = inputs.unsqueeze(0).unsqueeze(0)
+        time0 = time.time() * 1000
         outputs = model(inputs)
+        if outputs[0][0][0][0]  > 1:
+            pass 
+        time1 = time.time() * 1000
+        print(time1 - time0)
         max_conf = [0,0,0]
         for i in range(21):
             for j in range(37):
                 output = outputs[0,i,j]
                 if output[0] > max_conf[2]:
                     max_conf = [i,j, output[0]]
-        print(max_conf[2])
         if max_conf[2] > 1:
             i = max_conf[0]
             j = max_conf[1]

@@ -17,7 +17,7 @@ K2 = 100
 K3 = 100
 BATCH_SIZE = 10
 CUDA = 1
-WANDB = 1 
+WANDB = 0 
 LOAD = 0
 cv2.namedWindow("a", cv2.WINDOW_NORMAL);
 cv2.moveWindow("a", 0,0);
@@ -81,7 +81,9 @@ for epoch in range(20000000):
         if CUDA:
             inputs = inputs.cuda()
             ground_truth = ground_truth.cuda()
+        time0 = time.time()
         outputs = model(inputs)
+        time0 = time.time()
         outputs = outputs.contiguous().view(-1,5)
         ground_truth = ground_truth.contiguous().view(-1 ,5)
 
