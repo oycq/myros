@@ -4,7 +4,6 @@ import torch.nn as nn
 import cv2
 #cfg = [8,'M',8, 8, 'M', 16, 16,'M',32,32,'M',64,64, 'M', 128,128,'v']
 cfg = [4,'M',4, 4, 'M', 8, 8,'M',16,16,'M',32,32, 'M', 64,64,'v']
-#  896    448       224         112       56  
 cfg2 = [1]
 
 class Model(nn.Module):
@@ -12,16 +11,26 @@ class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
         self.features = self._make_layers(cfg, batch_norm=True, in_channels = 1)
+        self.supper= nn.Sequential(
+            nn.Linear(37*21*5, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(inplace = True),
+            nn.Linear(512, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(inplace = True),
+            nn.Linear(512, 4),
+        )
         self._initialize_weights()
 
     def forward(self, inputs):
+
         x = self.features(inputs)
         x = x.permute(0,2,3,1)
+        confi = torch.max(x[:,:,:,0])
+        confi = torch.sigmoid(confi)
         y = x.flatten(1)
-        print(y.shape)
-
-
-        return x
+        y = self.supper(y)
+        return confi, y, x
 
 
     def _make_layers(self,cfg,batch_norm,in_channels = 1):

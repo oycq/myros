@@ -15,16 +15,17 @@ import time
 K1 = 1 
 K2 = 100
 K3 = 100
-BATCH_SIZE = 10
+K4 = 1
+BATCH_SIZE = 15
 CUDA = 1
 WANDB = 1 
 LOAD = 0
 cv2.namedWindow("a", cv2.WINDOW_NORMAL);
 cv2.moveWindow("a", 0,0);
 cv2.setWindowProperty("a", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
-#cv2.namedWindow("b", cv2.WINDOW_NORMAL);
-#cv2.moveWindow("b", 1920,0);
-#cv2.setWindowProperty("b", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
+cv2.namedWindow("b", cv2.WINDOW_NORMAL);
+cv2.moveWindow("b", 3840,0);
+cv2.setWindowProperty("b", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
 
 
 if WANDB:
@@ -77,11 +78,12 @@ for epoch in range(20000000):
     time0 = time.time()
 #    test_result = test()
 #    print(test_result)
-    for i, (inputs, ground_truth) in enumerate(train_loader):
+    for i, (inputs, ground_truth, ground_truth1) in enumerate(train_loader):
         if CUDA:
             inputs = inputs.cuda()
             ground_truth = ground_truth.cuda()
-        outputs = model(inputs)
+            ground_truth1 = ground_truth1.cuda()
+        _, outputs1, outputs = model(inputs)
         outputs = outputs.contiguous().view(-1,5)
         ground_truth = ground_truth.contiguous().view(-1 ,5)
 
@@ -90,7 +92,9 @@ for epoch in range(20000000):
         index = ground_truth[:,0] == 1
         loss2 = loss_f2(outputs[index,1:3], ground_truth[index,1:3]) * K2
         loss3 = loss_f2(mm(outputs[index,3:])**0.5, (ground_truth[index,3:])**0.5) * K3
-        loss = loss1 + loss2 + loss3
+        loss4 = loss_f2(outputs1[:,0:2], ground_truth1[:,0:2]) * K2 * K4
+        loss5 = loss_f2(mm(outputs1[:,2:])**0.5, (ground_truth1[:,2:])**0.5) * K3 * K4
+        loss = loss1 + loss2 + loss3 + loss4 + loss5
         optimizer.zero_grad() 
         loss.backward()
         optimizer.step()
@@ -100,10 +104,12 @@ for epoch in range(20000000):
             wandb.log({'loss1':loss1.item(),
                        'loss2':loss2.item(),
                        'loss3':loss3.item(),
+                       'loss4':loss4.item(),
+                       'loss5':loss5.item(),
                        'loss':loss.item(),
                        })
 
-        if i % 2 == 0:
+        if i % 4 == 0:
             ii = random.randrange(0,20)
             jj = random.randrange(0,36)
             p =  ii * 37 + jj
@@ -119,12 +125,16 @@ for epoch in range(20000000):
             x,y,w,h = int(x*k - w*k/2 + k/2),int(y*k - h*k/2 + k/2),int(w*k),int(h*k)
             cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
             cv2.imshow('a',image)
-#            plain = np.ones((120,120))
-#            for ii in range(8):
-#                for jj in range(8):
-#                    plain[ii * 15: ii*15+ 14, jj * 15:jj * 15+ 14] = \
-#                    my_model.haha.detach().cpu().numpy()[0,ii * 8 + jj]
-#            cv2.imshow('b', plain)
+
+            image = inputs[0,0].cpu().numpy()
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+            x,y,w,h = ground_truth1[0,0].item(),ground_truth1[0,1].item(),ground_truth1[0,2].item(),ground_truth1[0,3].item()
+            x,y,w,h = int(x*2048 - w*1024 + 1024),int(y*1536- h*768 + 768),int(w*2048),int(h*1536)
+            cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
+            x,y,w,h = outputs1[0,0].item(),outputs1[0,1].item(),outputs1[0,2].item(),outputs1[0,3].item()
+            x,y,w,h = int(x*2048 - w*1024 + 1024),int(y*1536- h*768 + 768),int(w*2048),int(h*1536)
+            cv2.rectangle(image,(x,y),(x+w,y+h),(0,0,255),2)
+            cv2.imshow('b',image)
         key = cv2.waitKey(1)
                 
 

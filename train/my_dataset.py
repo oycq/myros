@@ -31,8 +31,7 @@ for i in range(len(image_list)):
 
 def get_data(I):
     x,y,w,h,image_path = points_list[I]
-    a = y + h
-    b = x + w  
+    g1 = np.array([float(x)/2048  + w/4096.0 - 0.5 , float(y)/1536 + h/3072.0 - 0.5, float(w)/2048, float(h)/1536])
     gr = (1536 - s) // 32 + 1
     gc = (2048- s) // 32 + 1
     g = np.zeros((gr, gc, 5), dtype = np.float)
@@ -49,7 +48,7 @@ def get_data(I):
                     g[ii,jj] = np.array((0,0,0,0,0))
                 else:
                     g[ii,jj] = np.array((-1,0,0,0,0))
-    return image, g
+    return image, g , g1 
     
 class MyDataset(Dataset):
     def __init__(self, train_test):
@@ -64,11 +63,12 @@ class MyDataset(Dataset):
     def __getitem__(self,index):
         if self.train_test == 'test':
             index += len(points_list) * 2 // 3
-        image, g =  get_data(index)
+        image, g, g1 =  get_data(index)
         inputs = torch.tensor(image,dtype = torch.float32) / 255
         inputs = inputs.unsqueeze(0)
         ground_truth = torch.tensor(g,dtype = torch.float32)
-        return inputs, ground_truth
+        ground_truth1 = torch.tensor(g1,dtype = torch.float32)
+        return inputs, ground_truth, ground_truth1 
 
 if __name__ == '__main__':
     aa = 0

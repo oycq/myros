@@ -10,7 +10,7 @@ import os
 import struct
 from threading import Lock
 
-ser = serial.Serial('/dev/ttyUSB0',115200)  # open serial port
+ser = serial.Serial('/dev/gimbal_uart',115200)  # open serial port
 time.sleep(1)
 
 def speed_control(speed_pitch = 0, speed_roll = 0, speed_yaw = 0):
