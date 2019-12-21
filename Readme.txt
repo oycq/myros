@@ -35,6 +35,7 @@ enc_key e362a40fba4052397389b31fc0ed8fed9df9db7890d9c06dcd1ae7d1a5a9e874
 uart dji_uart
 
 ros_network
+nm-connection-editor
 server:export ROS_IP=10.42.0.120
 client:export ROS_IP=10.42.0.1
 client:export ROS_MASTER_URI=http://10.42.0.120:11311
