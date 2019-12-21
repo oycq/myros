@@ -1,0 +1,17 @@
+<launch>
+<group ns="joy">
+    <node pkg="joy" type="joy_node" name="joy0_node" output="screen">
+    <param name="autorepeat_rate"  value="100"/>
+    <param name="deadzone"  value="0.001"/>
+    <param name="dev"  value="/dev/j0"/>
+    <remap from="joy" to="j0"/>
+    </node>
+
+    <node pkg="joy" type="joy_node" name="joy1_node" output="screen">
+    <param name="autorepeat_rate"  value="100"/>
+    <param name="deadzone"  value="0.001"/>
+    <param name="dev"  value="/dev/j1"/>
+    <remap from="joy" to="j1"/>
+    </node>
+</group>
+</launch>
