@@ -26,7 +26,22 @@ sudo make install
 2--- ros
 git clone https://github.com/dji-sdk/Onboard-SDK-ROS.git
 cd ~/catkin_ws
+sudo apt install ros-melodic-nmea-msgs
 catkin_make
+3--- launchfile
+vim ~/catkin_ws/src/Onboard-SDK-ROS/dji_sdk/launch/sdk.launch
+app_id 1080161
+enc_key e362a40fba4052397389b31fc0ed8fed9df9db7890d9c06dcd1ae7d1a5a9e874
+uart dji_uart
+
+ros_network
+server:export ROS_IP=10.42.0.120
+client:export ROS_IP=10.42.0.1
+client:export ROS_MASTER_URI=http://10.42.0.120:11311
+
+
+
+
 
 
 
