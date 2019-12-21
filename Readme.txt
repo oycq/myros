@@ -24,8 +24,7 @@ cmake ..
 make 
 sudo make install
 2--- ros
-cp Onboard-SDK-ROS-3.8
-(git clone https://github.com/dji-sdk/Onboard-SDK-ROS.git) 
+git clone https://github.com/dji-sdk/Onboard-SDK-ROS.git
 cd ~/catkin_ws
 catkin_make
 
