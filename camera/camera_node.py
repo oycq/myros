@@ -112,7 +112,7 @@ if __name__ == '__main__':
 #        print("%6.2f %6.2f"%(t1-t0,t2-t0))
 #       if key == ord('q'):
 #            break
-        print("cap %5.2f   memory %5.2f   ros_pub %5.2f   sum %5.2f"%(t1-t0,t2-t1,t3-t2,t3-t0))
+#        print("cap %5.2f   memory %5.2f   ros_pub %5.2f   sum %5.2f"%(t1-t0,t2-t1,t3-t2,t3-t0))
         if rospy.is_shutdown():
             del cam
             break

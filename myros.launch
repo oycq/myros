@@ -1,0 +1,49 @@
+<launch>
+<group ns="joy">
+    <node pkg="joy" type="joy_node" name="joy0_node" output="screen">
+    <param name="autorepeat_rate"  value="100"/>
+    <param name="deadzone"  value="0.001"/>
+    <param name="dev"  value="/dev/j0"/>
+    <remap from="joy" to="j0"/>
+    </node>
+
+    <node pkg="joy" type="joy_node" name="joy1_node" output="screen">
+    <param name="autorepeat_rate"  value="100"/>
+    <param name="deadzone"  value="0.001"/>
+    <param name="dev"  value="/dev/j1"/>
+    <remap from="joy" to="j1"/>
+    </node>
+</group>
+
+<group ns="gimbal">
+    <node pkg="myros" type="gimbal_node.py" name='gimbal_node' output="screen">
+    <remap from="joy" to="/joy/j0"/>
+    <remap from="tracking_info" to="/tracking/tracking_info"/>
+    </node>
+</group>
+
+<group ns="camera0">
+    <node pkg="myros" type="camera_node.py" name='camera_node' output="screen">
+    </node>
+</group>
+
+<group ns="tracking">
+    <node pkg="myros" type="tracking_node.py" name='tracking_node' output="screen">
+    <remap from="image_path" to="/camera0/image_path"/>
+    <remap from="lockon_command" to="/ui/lockon_command"/>
+    </node>
+</group>
+
+
+<group ns="ui">
+    <node pkg="myros" type="display_node.py" name='display_node' output="screen">
+    <remap from="joy" to="/joy/j0"/>
+    <remap from="image_path" to="/camera0/image_path"/>
+    <remap from="tracking_info" to="/tracking/tracking_info"/>
+    </node>
+</group>
+
+
+<include file="$(find dji_sdk)/launch/sdk.launch"/>
+
+</launch>

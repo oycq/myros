@@ -1,4 +1,6 @@
 store
-*.pyc
+train/*.pyc
+*/*.pyc
 train/__pycache__
 train/wandb
+

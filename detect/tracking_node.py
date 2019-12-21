@@ -51,7 +51,7 @@ def lockon_command_callback(a):
 if __name__ == '__main__':
     rospy.init_node('traking_node', anonymous=False)
     rospy.Subscriber("image_path", String, image_path_callback)
-    rospy.Subscriber("lockon_command_node", String, lockon_command_callback)
+    rospy.Subscriber("lockon_command", String, lockon_command_callback)
     control_pub = rospy.Publisher('gimbal_control', Joy, queue_size = 1)
     tracking_info_pub = rospy.Publisher('tracking_info', Int16MultiArray, queue_size = 1)
     while not rospy.is_shutdown():

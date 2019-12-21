@@ -10,7 +10,7 @@ import os
 import struct
 from threading import Lock
 
-ser = serial.Serial('/dev/ttyUSB0',115200)  # open serial port
+ser = serial.Serial('/dev/gimbal_uart',115200)  # open serial port
 time.sleep(1)
 
 def speed_control(speed_pitch = 0, speed_roll = 0, speed_yaw = 0):
@@ -128,14 +128,14 @@ if __name__ == '__main__':
     rospy.init_node('gimbal_node', anonymous=False)
     rospy.Subscriber("joy", Joy, joy_callback)
     rospy.Subscriber('tracking_info', Int16MultiArray, tracking_info_callback)
-    gimbal_imu_angle = rospy.Publisher('gimbal_imu_angle', Vector3, queue_size=1)
-    gimbal_imu_speed = rospy.Publisher('gimbal_imu_speed', Vector3, queue_size=1)
-    gimbal_joint_angle = rospy.Publisher('gimbal_joint_angle', Vector3, queue_size=1)
+    gimbal_imu_angle = rospy.Publisher('imu_angle', Vector3, queue_size=1)
+    gimbal_imu_speed = rospy.Publisher('imu_speed', Vector3, queue_size=1)
+    gimbal_joint_angle = rospy.Publisher('joint_angle', Vector3, queue_size=1)
     while not rospy.is_shutdown():
         imu_angle,imu_speed,imu_acc,joint_angle = get_status()
-        gimbal_imu_angle.publish(imu_angle[0], imu_angle[1], imu_angle[2])
-        gimbal_imu_speed.publish(imu_speed[0], imu_speed[1], imu_speed[2])
-        gimbal_joint_angle.publish(joint_angle[0], joint_angle[1], joint_angle[2])
+        gimbal_imu_angle.publish(imu_angle[2], imu_angle[0], imu_angle[1])
+        gimbal_imu_speed.publish(imu_speed[2], imu_speed[0], imu_speed[1])
+        gimbal_joint_angle.publish(joint_angle[2], joint_angle[0], joint_angle[1])
         if use_traking_data == True and good_track == True:
             speed_control( pitch_control, 0, yaw_control)
         else:

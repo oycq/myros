@@ -68,9 +68,10 @@ def joy_callback(a):
     if a.buttons[1] == 1:
         if last_buttons[1] == 0:
             if record_state == 0:
-                rosbag_proc = subprocess.Popen('rosbag record -o ../store/ -a __name:=my_bag',shell=True)
+                rosbag_proc = subprocess.Popen('rosbag record -o ~/catkin_ws/src/myros/store/ -a __name:=my_bag',shell=True)
+                rosbag_proc = subprocess.Popen('pwd',shell=True)
             else:
-                os.system('rosnode kill /my_bag')
+                os.system('rosnode kill my_bag')
             record_state = (record_state + 1) % 2
     last_buttons = a.buttons
 
@@ -112,7 +113,7 @@ if __name__ == '__main__':
     rospy.Subscriber("image_path/", std_msgs.msg.String, image_path_callback)
     rospy.Subscriber("joy", Joy, joy_callback)
     rospy.Subscriber('tracking_info', Int16MultiArray, tracking_info_callback)
-    lockon_commmand_pub = rospy.Publisher('lockon_command_node', String, queue_size = 1)
+    lockon_commmand_pub = rospy.Publisher('lockon_command', String, queue_size = 1)
 #    cv2.namedWindow('img', cv2.WND_PROP_FULLSCREEN)
 #    cv2.setWindowProperty("img",cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
 #    cv2.setMouseCallback('img',mouse_callback)
@@ -141,6 +142,6 @@ if __name__ == '__main__':
         dispaly_image_pub.publish(ros_image)
         t3 = time.time() * 1000
 #        key = cv2.waitKey(1)
-        print('%7.2f %7.2f %7.2f %7.2f'%(t1-t0, t2-t1, t3-t2, t3-t0))
+###        print('%7.2f %7.2f %7.2f %7.2f'%(t1-t0, t2-t1, t3-t2, t3-t0))
 #        if key == ord('q'):
 #            break
