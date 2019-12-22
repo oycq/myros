@@ -37,7 +37,7 @@ if CUDA:
         model = model.half()
 
 if LOAD:
-    model.load_state_dict(torch.load('/home/oycq/myros/store/history/2019-12-18-09-28-07/600:0.model'))
+    model.load_state_dict(torch.load('../store/history/2019-12-18-09-28-07/600:0.model'))
 model.train()
 m = nn.Sigmoid()
 
