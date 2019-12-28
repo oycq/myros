@@ -1,8 +1,6 @@
 <launch>
 <group ns="gimbal">
     <node pkg="myros" type="gimbal_node.py" name='gimbal_node' output="screen">
-    <remap from="joy" to="/joy/j0"/>
-    <remap from="tracking_info" to="/tracking/tracking_info"/>
     </node>
 </group>
 
@@ -13,21 +11,27 @@
 
 <group ns="tracking">
     <node pkg="myros" type="tracking_node.py" name='tracking_node' output="screen">
-    <remap from="image_path" to="/camera0/image_path"/>
-    <remap from="lockon_command" to="/ui/lockon_command"/>
     </node>
 </group>
 
 
 <group ns="ui">
     <node pkg="myros" type="display_node.py" name='display_node' output="screen">
-    <remap from="joy" to="/joy/j0"/>
-    <remap from="image_path" to="/camera0/image_path"/>
-    <remap from="tracking_info" to="/tracking/tracking_info"/>
+    </node>
+</group>
+
+<group ns="control">
+    <node pkg="myros" type="control_node.py" name='control_node' output="screen">
+    </node>
+</group>
+
+<group ns="cnn">
+    <node pkg="myros" type="cnn_node.py" name='cnn_node' output="screen">
     </node>
 </group>
 
 
-<include file="$(find dji_sdk)/launch/sdk.launch"/>
+
+<!--include file="$(find dji_sdk)/launch/sdk.launch"/-->
 
 </launch>

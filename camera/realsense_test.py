@@ -8,26 +8,36 @@ import std_msgs.msg
 from std_msgs.msg import String,Int16MultiArray
 import SharedArray as sa
 
+from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import Image
+
+bridge = CvBridge()
+realsense_image = None
+realsense_available = 0
+
 image_path = ''
 x = {}
 
-def image_path_callback(a):
-    global image_path,x
-    image_path = a.data
-    if a.data not in x:
-        x[a.data] = sa.attach(a.data)
+def realsense_callback(a):
+    global realsense_image, realsense_available
+    realsense_image = bridge.imgmsg_to_cv2(a, "bgr8")
+    realsense_available = 1
 
 def got():
-    return x[image_path].copy()
+    global realsense_available
+    while(not realsense_available):
+        time.sleep(0.00001)
+    realsense_available = 0
+    return realsense_image
 
 if __name__ == '__main__':
     ser=serial.Serial("/dev/ttyUSB1",115200,timeout=0.001)
     rospy.init_node('camera_latency_test_node', anonymous=False)
-    rospy.Subscriber("/camera0/image_path", std_msgs.msg.String, image_path_callback)
+    rospy.Subscriber("/camera/color/image_raw",Image, realsense_callback)
 
     while(not rospy.is_shutdown()):
-        if image_path == '':
-            time.sleep(0.01)
+        if realsense_image is None:
+            time.sleep(0.1)
             continue
         image = got()
         cv2.imshow("image",image)

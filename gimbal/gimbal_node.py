@@ -108,39 +108,26 @@ good_track = 0
 use_traking_data = False
 pitch_control = 0
 yaw_control = 0
+roll_control = 0
 
-def joy_callback(a):
-    global lock,speed_pitch,speed_yaw,speed_roll,uncontrol_i,use_traking_data
-#    with lock:
-    speed_pitch = a.axes[1]
-    speed_yaw = a.axes[0]
-    speed_roll = a.axes[2]
-    use_traking_data = a.buttons[3]
-
-def tracking_info_callback(a):
-    global yaw_control, pitch_control, good_track
-    good_track = a.data[0]
-    yaw_control = (a.data[1] + a.data[3] - a.data[5]) / 2 / 10
-    pitch_control = (a.data[2] + a.data[4] - a.data[6]) / 2 / 10
-
+def gimbal_speed_control(a):
+    global yaw_control, pitch_control, roll_control
+    yaw_control = a.x
+    roll_control = a.y
+    pitch_control = a.z
 
 if __name__ == '__main__':
     rospy.init_node('gimbal_node', anonymous=False)
-    rospy.Subscriber("joy", Joy, joy_callback)
-    rospy.Subscriber('tracking_info', Int16MultiArray, tracking_info_callback)
+    rospy.Subscriber("speed_control", Vector3, gimbal_speed_control)
     gimbal_imu_angle = rospy.Publisher('imu_angle', Vector3, queue_size=1)
     gimbal_imu_speed = rospy.Publisher('imu_speed', Vector3, queue_size=1)
     gimbal_joint_angle = rospy.Publisher('joint_angle', Vector3, queue_size=1)
     while not rospy.is_shutdown():
         imu_angle,imu_speed,imu_acc,joint_angle = get_status()
-        gimbal_imu_angle.publish(imu_angle[2], imu_angle[0], imu_angle[1])
-        gimbal_imu_speed.publish(imu_speed[2], imu_speed[0], imu_speed[1])
-        gimbal_joint_angle.publish(joint_angle[2], joint_angle[0], joint_angle[1])
-        if use_traking_data == True and good_track == True:
-            speed_control( pitch_control, 0, yaw_control)
-        else:
-            speed_control(speed_pitch **3 * 300, 0, -speed_yaw **3 * 300)
-            #speed_control(0, 0, 0)
+        gimbal_imu_angle.publish(imu_angle[2], imu_angle[0], -imu_angle[1])
+        gimbal_imu_speed.publish(imu_speed[2], imu_speed[1], imu_speed[0])
+        gimbal_joint_angle.publish(joint_angle[2], joint_angle[0], -joint_angle[1])
+        speed_control(-pitch_control, roll_control, yaw_control)
 
 
 #    motor_on()

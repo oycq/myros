@@ -23,7 +23,6 @@ class Model(nn.Module):
         self._initialize_weights()
 
     def forward(self, inputs):
-
         x = self.features(inputs)
         x = x.permute(0,2,3,1)
         confi = torch.max(x[:,:,:,0])

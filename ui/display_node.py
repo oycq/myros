@@ -21,9 +21,12 @@ mouse_y = 400
 box_w = 50
 traking_pt1 = (0,0)
 traking_pt2 = (0,0)
+detect_pt1 = (0,0)
+detect_pt2 = (0,0)
 new_image = 0
 record_state = 0
 rosbag_proc = None
+gimbal_following_mode = 0
 
 #def mouse_callback(event,x,y,flags,param):
 #    global mouse_x, mouse_y, pt1, pt2
@@ -39,11 +42,22 @@ def caculate_box_points(x,y,width,img_shape):
     pt2 = (b1,b2)
     return pt1,pt2
 
+def j1_callback(a):
+    global gimbal_following_mode 
+    if a.buttons[21] == 0:
+        if a.buttons[22] == 0:
+            gimbal_following_mode = 0
+        else:
+            gimbal_following_mode = 2
+    else:
+        gimbal_following_mode = 1
+
+
 
 
 last_lock_key = 0
 last_buttons = None
-def joy_callback(a):
+def j0_callback(a):
     global box_w,mouse_x,mouse_y,last_lock_key,record_state, last_buttons,rosbag_proc
     if a.buttons[6] == 1:
         box_w -= 1
@@ -88,6 +102,11 @@ def tracking_info_callback(a):
     global traking_pt1, traking_pt2
     traking_pt1 = (a.data[1], a.data[2])
     traking_pt2 = (a.data[3], a.data[4])
+
+def detect_info_callback(a):
+    global detect_pt1,detect_pt2
+    detect_pt1 = (a.data[1], a.data[2])
+    detect_pt2 = (a.data[3], a.data[4])
     
 how_many_dot = 0
 def draw_text(image):
@@ -110,9 +129,11 @@ if __name__ == '__main__':
     dispaly_image_pub = rospy.Publisher('display_image/compressed', CompressedImage, queue_size=1)
     #dispaly_image_pub = rospy.Publisher('display_image', Image, queue_size=1)
     rospy.init_node('display_node', anonymous=False)
-    rospy.Subscriber("image_path/", std_msgs.msg.String, image_path_callback)
-    rospy.Subscriber("joy", Joy, joy_callback)
-    rospy.Subscriber('tracking_info', Int16MultiArray, tracking_info_callback)
+    rospy.Subscriber("/camera0/image_path/", std_msgs.msg.String, image_path_callback)
+    rospy.Subscriber("/joy/j0", Joy, j0_callback)
+    rospy.Subscriber("/joy/j1", Joy, j1_callback)
+    rospy.Subscriber('/tracking/tracking_info', Int16MultiArray, tracking_info_callback)
+    rospy.Subscriber('/cnn/detect_info', Int16MultiArray, detect_info_callback)
     lockon_commmand_pub = rospy.Publisher('lockon_command', String, queue_size = 1)
 #    cv2.namedWindow('img', cv2.WND_PROP_FULLSCREEN)
 #    cv2.setWindowProperty("img",cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
@@ -131,8 +152,12 @@ if __name__ == '__main__':
         t1 = time.time() * 1000
         raw = x[image_path].copy()
         pt1,pt2 = caculate_box_points(mouse_x, mouse_y, box_w, raw.shape)
-        cv2.rectangle(raw,pt1,pt2,(0,255,0),2)
-        cv2.rectangle(raw,traking_pt1,traking_pt2,(0,0,255),2)
+        if gimbal_following_mode == 1:
+            cv2.rectangle(raw,pt1,pt2,(0,255,0),2)
+            cv2.rectangle(raw,traking_pt1,traking_pt2,(0,0,128),2)
+#        if gimbal_following_mode == 2:
+        cv2.rectangle(raw,detect_pt1,detect_pt2,(128,0,0),2)
+
 
         image = cv2.resize(raw,(1024,768))
         cv2.circle(image, (512,384), 3,(0,0,255), 1)
