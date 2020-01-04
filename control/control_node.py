@@ -11,7 +11,7 @@ import os
 import struct
 import math 
 
-DJI_ONLINE = 0
+DJI_ONLINE = 1
 JOY_CONTROL_EXP = 5.5
 TRAKING_K = 0.1
 
@@ -47,14 +47,14 @@ def joint_angle_callback(a):
     joint_yaw = a.x
     joint_pitch = a.z
     joint_data_available = 1
-#    control_data = Joy()
-#    control_data.axes = [0,0,0,0,0]
-#    control_data.axes[0] = distance_p * 4
-#    control_data.axes[1] = 0
-#    control_data.axes[2] = -height_p * a.z / 90
-#    control_data.axes[3] = -angle_p * a.x / 90
-#    control_data.axes[4] = 74
-#    dji_control_publisher.publish(control_data)
+    control_data = Joy()
+    control_data.axes = [0,0,0,0,0]
+    control_data.axes[0] = distance_p * 4
+    control_data.axes[1] = 0
+    control_data.axes[2] = -height_p * a.z / 90
+    control_data.axes[3] = -angle_p * a.x / 90
+    control_data.axes[4] = 74
+    dji_control_publisher.publish(control_data)
 
 def gimbal_imu_callback(a):
     global gimbal_imu_data_available, gimbal_imu_yaw, gimbal_imu_pitch
@@ -127,14 +127,10 @@ def detect_info_callback(a):
     detect_data_available = 1
 
 
-
-
-
-
 if __name__ == '__main__':
     rospy.init_node('control_node', anonymous=False)
-#    rospy.wait_for_service('/dji_sdk/sdk_control_authority')
-#    control_authority = rospy.ServiceProxy('/dji_sdk/sdk_control_authority', SDKControlAuthority)
+    rospy.wait_for_service('/dji_sdk/sdk_control_authority')
+    control_authority = rospy.ServiceProxy('/dji_sdk/sdk_control_authority', SDKControlAuthority)
     rospy.Subscriber("/joy/j1", Joy, joy1_callback)
     rospy.Subscriber("/joy/j0", Joy, joy0_callback)
     rospy.Subscriber("/gimbal/joint_angle", Vector3, joint_angle_callback)

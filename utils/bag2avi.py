@@ -11,7 +11,7 @@ import os
 import glob
 
 UI_DISPLAY = 0
-BAG_NAME = "../store/_2019-12-28-17-01-05.bag"
+BAG_NAME = "../store/_2019-12-28-16-58-17.bag"
 TOPIC_NAME = "/ui/display_image/compressed"
 OUTPUT_NAME = '/home/oycq/video.avi'
 COMPRESSED = 1

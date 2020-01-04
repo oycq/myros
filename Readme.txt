@@ -66,3 +66,9 @@ sudo mlxfwmanager
 PCI Device Name:  0000:1a:00.0
 sudo mlxconfig -d 0000:1a:00.0 set LINK_TYPE_P1=2 LINK_TYPE_P2=2
 
+ac56
+sudo apt install rtl8812au-dkms
+sudo modprobe 8812au
+sudo -H gedit /etc/NetworkManager/system-connections/Hotspot
+autoconnect=true
+sudo systemctl restart NetworkManager
